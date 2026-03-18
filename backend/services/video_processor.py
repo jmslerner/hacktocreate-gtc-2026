@@ -102,14 +102,17 @@ class VideoProcessor:
 
     async def extract_key_frame(self, file_path: str, output_path: str, timestamp: float = 0.0) -> str:
         """Extract a single frame from a video at a given timestamp."""
-        # Try ffmpeg first; fall back to torchvision if unavailable
-        proc = await asyncio.create_subprocess_exec(
-            "ffmpeg", "-y", "-ss", str(timestamp), "-i", file_path,
-            "-vframes", "1", "-q:v", "2", output_path,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
-        )
-        await proc.communicate()
+        # Try ffmpeg first; fall back to PyAV if unavailable
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "ffmpeg", "-y", "-ss", str(timestamp), "-i", file_path,
+                "-vframes", "1", "-q:v", "2", output_path,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            await proc.communicate()
+        except FileNotFoundError:
+            pass  # ffmpeg not installed, fall through to PyAV
 
         # If ffmpeg didn't produce the file, use PyAV
         if not os.path.exists(output_path):
