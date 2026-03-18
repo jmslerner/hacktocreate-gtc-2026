@@ -21,3 +21,4 @@ Pillow>=10.3.0
 
 # PDF export (production report)
 reportlab==4.2.2
+av

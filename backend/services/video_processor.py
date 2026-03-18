@@ -111,20 +111,21 @@ class VideoProcessor:
         )
         await proc.communicate()
 
-        # If ffmpeg didn't produce the file, use torchvision
+        # If ffmpeg didn't produce the file, use PyAV
         if not os.path.exists(output_path):
             await asyncio.get_event_loop().run_in_executor(
-                None, self._extract_frame_torchvision, file_path, output_path, timestamp
+                None, self._extract_frame_av, file_path, output_path, timestamp
             )
         return output_path
 
-    def _extract_frame_torchvision(self, file_path: str, output_path: str, timestamp: float) -> None:
-        import torchvision.io as tvio
-        from PIL import Image as PILImage
-        # Read all frames and pick the one nearest to the timestamp
-        vframes, _, info = tvio.read_video(file_path, pts_unit="sec", output_format="TCHW")
-        fps = info.get("video_fps", 24)
-        frame_idx = min(int(timestamp * fps), len(vframes) - 1)
-        frame = vframes[frame_idx]  # C H W tensor uint8
-        img = PILImage.fromarray(frame.permute(1, 2, 0).numpy())
-        img.save(output_path)
+    def _extract_frame_av(self, file_path: str, output_path: str, timestamp: float) -> None:
+        import av
+        container = av.open(file_path)
+        stream = container.streams.video[0]
+        stream.codec_context.skip_frame = "NONKEY"
+        target_pts = int(timestamp / stream.time_base)
+        container.seek(max(target_pts, 0), stream=stream)
+        for frame in container.decode(stream):
+            frame.to_image().save(output_path)
+            break
+        container.close()
