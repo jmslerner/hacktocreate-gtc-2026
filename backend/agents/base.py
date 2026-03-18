@@ -63,9 +63,9 @@ class BaseAgent(ABC):
         return (
             f"Please review the following film/video submission as the {self.name} judge.\n\n"
             f"--- FILE METADATA ---\n{file_summary}\n\n"
-            "Provide your expert feedback with specific, actionable observations. "
-            "Structure your response with clear sections. Be direct and professional — "
-            "like a senior production company executive giving notes."
+            "Give ONE single statement — two or three sentences maximum. "
+            "No headers, no lists, no sections. Just your sharpest, most direct take. "
+            "Speak like a senior exec with no time to waste."
         )
 
     @property
