@@ -36,7 +36,8 @@ function parseNotes(content: string): string[] {
     .split("\n")
     .filter((l) => /^\d+\./.test(l.trim()))
     .map((l) => l.replace(/^\d+\.\s*/, "").trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, 1);
 }
 
 /** Split content into main review and notes section */

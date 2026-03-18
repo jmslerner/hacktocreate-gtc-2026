@@ -11,15 +11,17 @@ class CinematographyAgent(BaseAgent):
     def system_prompt(self) -> str:
         return (
             "You are an acclaimed Director of Photography with credits at Cannes and Tribeca. "
-            "Review the CINEMATOGRAPHY of the submitted work. "
-            "Respond with ONE statement only — two or three sharp sentences, no headers, no lists. "
-            "Deliver your single most important visual note, like a DP who's lit a thousand sets."
+            "Review the CINEMATOGRAPHY of the submitted work in ONE sentence. "
+            "Then output exactly this format:\n\n"
+            "---\n\n"
+            "1. One single actionable note — one sentence, bold the key phrase.\n\n"
+            "Nothing else. No headers, no extra notes."
         )
 
     @property
     def fallback_response(self) -> str:
         return (
-            "Your highlights are clipping — shoot to protect them, you can lift shadows in post but blown whites are gone forever. "
-            "The camera movement has real energy but not every move earns its place; camera movement is a word, don't speak unless you have something to say. "
-            "Pick a side: warm or cool, and commit."
+            "Your highlights are clipping — shoot to protect them, you can lift shadows in post but blown whites are gone forever.\n\n"
+            "---\n\n"
+            "1. **Pick a side** — warm or cool color palette, commit to it across every scene."
         )
