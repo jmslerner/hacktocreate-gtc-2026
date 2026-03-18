@@ -102,6 +102,7 @@ class VideoProcessor:
 
     async def extract_key_frame(self, file_path: str, output_path: str, timestamp: float = 0.0) -> str:
         """Extract a single frame from a video at a given timestamp."""
+        # Try ffmpeg first; fall back to torchvision if unavailable
         proc = await asyncio.create_subprocess_exec(
             "ffmpeg", "-y", "-ss", str(timestamp), "-i", file_path,
             "-vframes", "1", "-q:v", "2", output_path,
@@ -109,4 +110,21 @@ class VideoProcessor:
             stderr=asyncio.subprocess.DEVNULL,
         )
         await proc.communicate()
+
+        # If ffmpeg didn't produce the file, use torchvision
+        if not os.path.exists(output_path):
+            await asyncio.get_event_loop().run_in_executor(
+                None, self._extract_frame_torchvision, file_path, output_path, timestamp
+            )
         return output_path
+
+    def _extract_frame_torchvision(self, file_path: str, output_path: str, timestamp: float) -> None:
+        import torchvision.io as tvio
+        from PIL import Image as PILImage
+        # Read all frames and pick the one nearest to the timestamp
+        vframes, _, info = tvio.read_video(file_path, pts_unit="sec", output_format="TCHW")
+        fps = info.get("video_fps", 24)
+        frame_idx = min(int(timestamp * fps), len(vframes) - 1)
+        frame = vframes[frame_idx]  # C H W tensor uint8
+        img = PILImage.fromarray(frame.permute(1, 2, 0).numpy())
+        img.save(output_path)
